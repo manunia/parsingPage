@@ -1,13 +1,24 @@
-import javafx.scene.layout.BorderPane;
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class ParsePageClass extends JFrame{
 
-    private String pgeAddress = "https://ru.wikipedia.org/wiki/Рабочая_партия_Финляндии";
-    private boolean wasRedact = true;
+    private String articleName;
+    private String pgeAddress = "https://ru.wikipedia.org/wiki/";
+
+    private String[] day;
+    private String[] month;
+    private String[] year;
+
     private String compareStr = "\t\t\t\t\t\t\t\t<li id=\"footer-info-lastmod\"> Эта страница в последний раз была отредактирована 26 ноября 2017 в 13:28.</li>";
+    private boolean wasRedact = true;
 
     private JLabel articleNameLabel;
     private JTextField articleNameField;
@@ -37,11 +48,47 @@ public class ParsePageClass extends JFrame{
         JMenu menu = new JMenu("About");
         JMenuItem about = new JMenuItem("About");
 
+        //добавим слушатель на текстовое поле
+        articleNameField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                articleName = articleNameField.getText();
+                pgeAddress +=  articleName;
+            }
+        });
+
+        //добави слушатель на кнопку
+        confirmButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+//                articleName = articleNameField.getText();
+//                pgeAddress +=  articleName;
+                try {
+                    URL url = new URL(pgeAddress);
+                    try {
+                        LineNumberReader reader = new LineNumberReader(new InputStreamReader(url.openStream()));
+                        String string = reader.readLine();
+                        while (string != null) {
+                            System.out.println(string);
+
+                            string = reader.readLine();
+                        }
+                        reader.close();
+
+                    } catch (IOException ex1) {
+                        ex1.printStackTrace();
+                    }
+                } catch (MalformedURLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
         menu.add(about);
         menuBar.add(menu);
 
         getContentPane().add(articleNameLabel);
         getContentPane().add(articleNameField);
+
+        getContentPane().add(confirmButton);
 
         setJMenuBar(menuBar);
         setLocationRelativeTo(null);
