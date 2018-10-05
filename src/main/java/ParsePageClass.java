@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -14,8 +15,8 @@ public class ParsePageClass extends JFrame{
     private String day;
     private String month;
     private String year;
-    private String hour;
-    private String minute;
+    private int hour;
+    private int minute;
     private boolean wasRedact = true;
 
     private JLabel articleNameLabel;
@@ -34,17 +35,21 @@ public class ParsePageClass extends JFrame{
 
         super("Wikipedia article redact");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(400,400);
+        setSize(300,350);
+        setResizable(false);
 
-        setLayout(new FlowLayout());
+        setLayout(new FlowLayout(FlowLayout.CENTER,10,20));
 
-        articleNameLabel = new JLabel("Enter your article name: ");
+        articleNameLabel = new JLabel("Введите название статьи: ");
         articleNameField = new JTextField(20);
-        dateLabel = new JLabel("Enter your last redacting date: ");
+        dateLabel = new JLabel("Введите дату последнего изменения: ");
         dayComboBox = new JComboBox();
         monthComboBox = new JComboBox();
         yearComboBox = new JComboBox();
-        confirmButton = new JButton("Confirm");
+        timeLabel = new JLabel("Введите время изменения: ");
+        hourField = new JTextField(2);
+        minuteField = new JTextField(2);
+        confirmButton = new JButton("Найти");
         menuBar = new JMenuBar();
         JMenu menu = new JMenu("About");
         JMenuItem about = new JMenuItem("About");
@@ -84,27 +89,31 @@ public class ParsePageClass extends JFrame{
                 day = String.valueOf(dayComboBox.getSelectedItem());
                 month = String.valueOf(monthComboBox.getSelectedItem());
                 year = String.valueOf(yearComboBox.getSelectedItem());
+                hour = Integer.parseInt(hourField.getText());
+                minute = Integer.parseInt(minuteField.getText());
                 String pgeAddress = "https://ru.wikipedia.org/wiki/" + articleName;
-                String compareStr = "\t\t\t\t\t\t\t\t<li id=\"footer-info-lastmod\"> Эта страница в последний раз была отредактирована " + day + " " + month + " " + year + " в 13:28.</li>";
-
-                System.out.println("Искомая строка:\n" + compareStr);
-                System.out.println("Найденная строка:");
+                String compareStr = "\t\t\t\t\t\t\t\t<li id=\"footer-info-lastmod\"> Эта страница в последний раз была отредактирована " + day + " " + month + " " + year + " в " + hour + ":" + minute + ".</li>";
                 try {
                     URL url = new URL(pgeAddress);
                     try {
                         LineNumberReader reader = new LineNumberReader(new InputStreamReader(url.openStream()));
                         String string = reader.readLine();
                         while (string != null) {
+                            if (hour > 23 || minute > 59) {
+                                System.out.println("Неверный формат времени!");
+                                break;
+                            }
                             //System.out.println(string);
                             if (string.equalsIgnoreCase(compareStr)){
                                 System.out.println("Статья не была отредактирована!");
+                                System.out.println("Искомая строка:\n" + compareStr);
+                                System.out.println("Найденная строка:");
                                 System.out.println(string);
                                 wasRedact = false;
                                 break;
                             }
                             string = reader.readLine();
                         }
-                        System.out.println(string);
                         System.out.println(wasRedact);
                         if (wasRedact) {
                             System.out.println("Внимание! Статья была отредактирована!");
@@ -112,6 +121,7 @@ public class ParsePageClass extends JFrame{
                         reader.close();
                     } catch (IOException ex1) {
                         ex1.printStackTrace();
+                        System.out.println("В Википедии нет статьи с таким названием.");
                     }
                 } catch (MalformedURLException ex) {
                     ex.printStackTrace();
@@ -128,6 +138,9 @@ public class ParsePageClass extends JFrame{
         getContentPane().add(dayComboBox);
         getContentPane().add(monthComboBox);
         getContentPane().add(yearComboBox);
+        getContentPane().add(timeLabel);
+        getContentPane().add(hourField);
+        getContentPane().add(minuteField);
 
         getContentPane().add(confirmButton);
 
