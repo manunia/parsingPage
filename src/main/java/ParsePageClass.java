@@ -15,8 +15,8 @@ public class ParsePageClass extends JFrame{
     private String day;
     private String month;
     private String year;
-    private int hour;
-    private int minute;
+    private String hour;
+    private String minute;
     private boolean wasRedact = true;
 
     private JLabel articleNameLabel;
@@ -36,7 +36,7 @@ public class ParsePageClass extends JFrame{
         super("Wikipedia article redact");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setSize(300,350);
-        setResizable(false);
+        //setResizable(false);
 
         setLayout(new FlowLayout(FlowLayout.CENTER,10,20));
 
@@ -89,8 +89,8 @@ public class ParsePageClass extends JFrame{
                 day = String.valueOf(dayComboBox.getSelectedItem());
                 month = String.valueOf(monthComboBox.getSelectedItem());
                 year = String.valueOf(yearComboBox.getSelectedItem());
-                hour = Integer.parseInt(hourField.getText());
-                minute = Integer.parseInt(minuteField.getText());
+                hour = hourField.getText();
+                minute = minuteField.getText();
                 String pgeAddress = "https://ru.wikipedia.org/wiki/" + articleName;
                 String compareStr = "\t\t\t\t\t\t\t\t<li id=\"footer-info-lastmod\"> Эта страница в последний раз была отредактирована " + day + " " + month + " " + year + " в " + hour + ":" + minute + ".</li>";
                 try {
@@ -99,13 +99,23 @@ public class ParsePageClass extends JFrame{
                         LineNumberReader reader = new LineNumberReader(new InputStreamReader(url.openStream()));
                         String string = reader.readLine();
                         while (string != null) {
-                            if (hour > 23 || minute > 59) {
-                                System.out.println("Неверный формат времени!");
+                            try {
+                                if (Integer.parseInt(hour) > 23 || Integer.parseInt(minute) > 59) {
+                                    System.out.println("Неверный формат времени!");
+                                    new MessageDialog("Неверный формат", "Неверный формат времени!");
+                                    wasRedact = false;
+                                    break;
+                                }
+                            } catch (NumberFormatException ex) {
+                                ex.printStackTrace();
+                                new MessageDialog("Неверный формат","Неверный формат времени!");
+                                wasRedact = false;
                                 break;
                             }
                             //System.out.println(string);
                             if (string.equalsIgnoreCase(compareStr)){
                                 System.out.println("Статья не была отредактирована!");
+                                new MessageDialog("OK","Статья не была отредактирована!");
                                 System.out.println("Искомая строка:\n" + compareStr);
                                 System.out.println("Найденная строка:");
                                 System.out.println(string);
@@ -116,16 +126,25 @@ public class ParsePageClass extends JFrame{
                         }
                         System.out.println(wasRedact);
                         if (wasRedact) {
+                            new MessageDialog("Внимание!","Внимание! Статья была отредактирована!");
                             System.out.println("Внимание! Статья была отредактирована!");
+                            System.out.println(compareStr);
                         }
                         reader.close();
                     } catch (IOException ex1) {
                         ex1.printStackTrace();
+                        new MessageDialog("Статья не найдена", "В Википедии нет статьи с таким названием.");
                         System.out.println("В Википедии нет статьи с таким названием.");
                     }
                 } catch (MalformedURLException ex) {
                     ex.printStackTrace();
                 }
+            }
+        });
+
+        about.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new AboutDialog();
             }
         });
 
